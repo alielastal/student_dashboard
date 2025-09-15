@@ -1,38 +1,31 @@
+# app.py
 import streamlit as st
-import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
+from scripts.data_loader import load_data
+from scripts.data_cleaning import clean_data
+from scripts.predictor import load_model, predict
 
-# إعداد العنوان
-st.title("📊 لوحة تحكم أداء الطلاب")
+st.set_page_config(page_title="Student Performance Dashboard", layout="centered")
 
-# تحميل البيانات
-@st.cache
-def load_data():
-    return pd.read_csv("students.csv")
+# Title
+st.title("📊 Student Performance Dashboard")
 
+# Load and clean data
 df = load_data()
+df = clean_data(df)
 
-# عرض البيانات
-st.subheader("📋 بيانات الطلاب")
-st.dataframe(df)
+# Display data
+st.subheader("Display raw data")
+st.dataframe(df.head())
 
-# إحصائيات عامة
-st.subheader("📈 إحصائيات عامة")
-col1, col2, col3 = st.columns(3)
-col1.metric("متوسط الحضور", f"{df['attendance_percent'].mean():.1f}%")
-col2.metric("متوسط ساعات الدراسة", f"{df['hours_studied'].mean():.1f}")
-col3.metric("متوسط نتيجة الامتحان", f"{df['exam_score'].mean():.1f}")
+# Enter new data for forecasting
+st.subheader("🔮 Predicting student results")
+hours_studied = st.slider("Study hours", 0.0, 15.0, 5.0)
+sleep_hours = st.slider("Sleep hours", 0.0, 12.0, 6.0)
+attendance = st.slider("Attendance rate", 0.0, 100.0, 75.0)
+previous_scores = st.slider("Previous grades", 0.0, 100.0, 70.0)
 
-# رسم بياني: ساعات الدراسة مقابل نتيجة الامتحان
-st.subheader("🎓 العلاقة بين ساعات الدراسة ودرجة الامتحان")
-fig, ax = plt.subplots()
-sns.scatterplot(data=df, x="hours_studied", y="exam_score", hue="attendance_percent", palette="viridis", ax=ax)
-st.pyplot(fig)
-
-# فلترة الطلاب حسب الحضور
-st.subheader("🔍 تصفية الطلاب حسب نسبة الحضور")
-attendance_threshold = st.slider("أدخل الحد الأدنى للحضور", 0, 100, 50)
-filtered_df = df[df["attendance_percent"] >= attendance_threshold]
-st.write(f"عرض {filtered_df.shape[0]} طالباً/طالبة لديهم حضور ≥ {attendance_threshold}%")
-st.dataframe(filtered_df)
+# Load the model and prediction
+model = load_model()
+if st.button("Calculate the prediction"):
+    result = predict(model, [hours_studied, sleep_hours, attendance, previous_scores])
+    st.success(f"🔔 Exam score prediction: {result:.2f}")
