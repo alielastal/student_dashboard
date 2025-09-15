@@ -1,0 +1,6 @@
+student_id,hours_studied,sleep_hours,attendance_percent,previous_scores,exam_score
+101,2,6,80,70,75
+102,1,5,60,65,60
+103,4,7,90,85,88
+104,3,6,70,75,72
+105,0.5,4,40,50,45
